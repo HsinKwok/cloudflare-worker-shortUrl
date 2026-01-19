@@ -503,14 +503,12 @@ function renderPasswordAuth(key) {
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     "<title>需要密码验证</title>" +
     '<script src="https://cdn.tailwindcss.com"></script>' +
-    '<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">' +
+    "<style>input[type=text],input[type=password],input[type=url],input[type=number],select{padding:.5rem .75rem;border:1px solid #e5e7eb;border-radius:.5rem;font-size:.875rem;outline:none}input:focus,select:focus{box-shadow:0 0 0 2px #93c5fd;border-color:#3b82f6}button{padding:.5rem .75rem;border-radius:.5rem;font-size:.875rem;border:1px solid transparent}button.primary{background:#3b82f6;color:#fff}button.primary:hover{background:#2563eb}button.danger{border-color:#ef4444;color:#ef4444;background:transparent}button.danger:hover{background:#fee2e2}button.outline{border-color:#e5e7eb;background:#fff;color:#111827}button.outline:hover{background:#f9fafb}</style>" +
     "</head>" +
     '<body class="min-h-screen bg-gray-50 flex items-center justify-center p-4">' +
     '<div class="w-full max-w-md bg-white rounded-xl p-8 shadow">' +
     '<div class="text-center mb-6">' +
-    '<div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 mx-auto mb-4">' +
-    '<i class="fa fa-lock text-2xl"></i>' +
-    "</div>" +
+    "" +
     '<h2 class="text-xl font-semibold text-gray-900">访问需要密码验证</h2>' +
     '<p class="text-gray-500 mt-2">该短链接受密码保护，请输入访问密码</p>' +
     "</div>" +
@@ -518,13 +516,10 @@ function renderPasswordAuth(key) {
     '<div>' +
     '<label class="block text-sm font-medium text-gray-700 mb-1">访问密码</label>' +
     '<div class="relative">' +
-    '<span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">' +
-    '<i class="fa fa-key"></i>' +
-    "</span>" +
-    '<input type="password" id="pwdInput" class="w-full pl-9 pr-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="输入访问密码">' +
+    '<input type="password" id="pwdInput" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="输入访问密码">' +
     "</div>" +
     "</div>" +
-    '<button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium">验证并访问</button>' +
+    '<button type="submit" class="w-full primary">验证并访问</button>' +
     "</form>" +
     "</div>" +
     "<script>" +
@@ -757,12 +752,12 @@ function renderLogin(env) {
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     "<title>短链接管理后台 - 登录</title>" +
     '<script src="https://cdn.tailwindcss.com"></script>' +
-    '<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">' +
+    "<style>input[type=text],input[type=password],input[type=url],input[type=number],select{padding:.5rem .75rem;border:1px solid #e5e7eb;border-radius:.5rem;font-size:.875rem;outline:none}input:focus,select:focus{box-shadow:0 0 0 2px #93c5fd;border-color:#3b82f6}button{padding:.5rem .75rem;border-radius:.5rem;font-size:.875rem;border:1px solid transparent}button.primary{background:#3b82f6;color:#fff}button.primary:hover{background:#2563eb}button.danger{border-color:#ef4444;color:#ef4444;background:transparent}button.danger:hover{background:#fee2e2}button.outline{border-color:#e5e7eb;background:#fff;color:#111827}button.outline:hover{background:#f9fafb}</style>" +
     "</head>" +
     '<body class="min-h-screen bg-gray-50 flex items-center justify-center p-4">' +
     '<div class="w-full max-w-md bg-white rounded-2xl p-8 shadow">' +
     '<div class="text-center mb-8">' +
-    '<i class="fa fa-link text-blue-500 text-4xl mb-4"></i>' +
+    "" +
     '<h1 class="text-2xl font-semibold text-gray-900">短链接管理后台</h1>' +
     '<p class="text-gray-500 mt-2">请输入后台密码登录</p>' +
     "</div>" +
@@ -775,7 +770,7 @@ function renderLogin(env) {
     '<label class="block text-sm font-medium text-gray-700 mb-1">密码</label>' +
     '<input type="password" id="password" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="环境变量PASSWORD">' +
     "</div>" +
-    '<button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium">登录</button>' +
+    '<button type="submit" class="w-full primary">登录</button>' +
     "</form>" +
     "</div>" +
     "<script>" +
@@ -798,17 +793,15 @@ function renderAdminUI(links, stats, token, env) {
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     "<title>短链接管理后台</title>" +
     '<script src="https://cdn.tailwindcss.com"></script>' +
-    '<link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">' +
-    '<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>' +
     "</head>" +
     '<body class="min-h-screen bg-gray-50 text-gray-900">' +
     '<header class="bg-white shadow-sm">' +
     '<div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">' +
     '<div class="flex items-center gap-2">' +
-    '<i class="fa fa-link text-blue-500 text-2xl"></i>' +
+    "" +
     '<span class="text-lg font-semibold">短链接管理后台</span>' +
     "</div>" +
-    '<button id="logoutBtn" class="text-sm text-gray-500 hover:text-red-500"><i class="fa fa-sign-out"></i> 退出</button>' +
+    '<button id="logoutBtn" class="text-sm text-gray-500 hover:text-red-500">退出</button>' +
     "</div>" +
     "</header>" +
     '<main class="max-w-6xl mx-auto px-4 py-6 space-y-6">' +
@@ -826,20 +819,19 @@ function renderAdminUI(links, stats, token, env) {
     '<p class="text-2xl font-semibold mt-1" id="statActiveLinks"></p>' +
     "</div>" +
     "</section>" +
-    '<section class="bg-white rounded-xl p-4 shadow-sm space-y-4">' +
-    '<div class="grid grid-cols-1 md:grid-cols-4 gap-3">' +
+    '<section class="bg-white rounded-xl p-4 shadow-sm space-y-3">' +
+    '<div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">' +
     '<div>' +
     '<label class="block text-sm text-gray-600 mb-1">短码</label>' +
     '<div class="flex gap-2">' +
-    '<input id="newShortCode" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="如: my-link">' +
-    '<button id="randomAdminCodeBtn" class="px-3 py-2 text-xs border rounded-lg">随机</button>' +
+    '<input id="newShortCode" class="with:60% px-3 py-2 border rounded-lg text-sm" placeholder="如: my-link">' +
+    '<button id="randomAdminCodeBtn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium">随机</button>' +
     "</div>" +
     "</div>" +
     '<div class="md:col-span-2">' +
     '<label class="block text-sm text-gray-600 mb-1">目标 URL</label>' +
     '<input id="newTargetUrl" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="https://example.com">' +
     "</div>" +
-    '<div class="grid grid-cols-2 gap-2">' +
     '<div>' +
     '<label class="block text-sm text-gray-600 mb-1">过期天数</label>' +
     '<input id="expireDays" type="number" value="90" min="0" class="w-full px-3 py-2 border rounded-lg text-sm">' +
@@ -851,34 +843,24 @@ function renderAdminUI(links, stats, token, env) {
     '<option value="301">301 永久</option>' +
     "</select>" +
     "</div>" +
-    "</div>" +
-    "</div>" +
-    '<div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">' +
-    '<div>' +
+    '<div class="md:col-span-2">' +
     '<label class="block text-sm text-gray-600 mb-1">访问密码（可选）</label>' +
-    '<input id="linkPassword" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="设置访问密码">' +
-    "</div>" +
     '<div class="flex gap-2">' +
-    '<button id="addLinkBtn" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg text-sm font-medium"><i class="fa fa-plus"></i> 添加</button>' +
-    '<button id="batchDeleteBtn" class="flex-1 border border-red-500 text-red-500 py-2 rounded-lg text-sm"><i class="fa fa-trash"></i> 批量删</button>' +
+    '<input id="linkPassword" class="flex-1 px-3 py-2 border rounded-lg text-sm" placeholder="设置访问密码">' +
+    '<button id="addLinkBtn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium">添加</button>' +
     "</div>" +
-    '<div>' +
-    '<label class="block text-sm text-gray-600 mb-1">批量导入 CSV</label>' +
-    '<input id="csvFile" type="file" accept=".csv" class="w-full text-sm">' +
-    "</div>" +
-    '<div>' +
-    '<label class="block text-sm text-gray-600 mb-1">搜索</label>' +
-    '<input id="searchInput" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="搜索短码或URL">' +
     "</div>" +
     "</div>" +
     "</section>" +
     '<section class="bg-white rounded-xl p-4 shadow-sm space-y-3">' +
+    '<div class="flex items-center justify-between">' +
     '<h3 class="font-semibold text-sm">API Key 管理</h3>' +
-    '<div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">' +
-    '<div><label class="block text-sm text-gray-600 mb-1">新增 API Key</label><input id="newApiKey" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="如: mycode"></div>' +
-    '<div><button id="addApiKeyBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg text-sm font-medium">添加</button></div>' +
-    '<div class="text-xs text-gray-500">用于 /api/create?key= 的授权校验</div>' +
+    '<div class="flex items-center gap-2">' +
+    '<input id="newApiKey" class="w-40 px-3 py-2 border rounded-lg text-sm" placeholder="新增 API Key">' +
+    '<button id="addApiKeyBtn" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm">添加</button>' +
     "</div>" +
+    "</div>" +
+    '<div class="text-xs text-gray-500">用于 /api/create?key= 的授权校验</div>' +
     '<div class="overflow-x-auto">' +
     '<table class="min-w-full text-sm">' +
     "<thead><tr><th class=\"px-3 py-2 text-left\">API Key</th><th class=\"px-3 py-2 text-left\">操作</th></tr></thead>" +
@@ -887,6 +869,12 @@ function renderAdminUI(links, stats, token, env) {
     "</div>" +
     "</section>" +
     '<section class="bg-white rounded-xl p-4 shadow-sm">' +
+    '<div class="flex items-center justify-between mb-3">' +
+    '<div class="flex-1 max-w-sm">' +
+    '<input id="searchInput" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="搜索短码或 URL">' +
+    "</div>" +
+    '<button id="batchDeleteBtn" class="danger">批量删</button>' +
+    "</div>" +
     '<div class="overflow-x-auto">' +
     '<table class="min-w-full text-sm">' +
     "<thead>" +
@@ -908,7 +896,7 @@ function renderAdminUI(links, stats, token, env) {
     '<div class="bg-white rounded-xl w-full max-w-2xl max-h-[80vh] flex flex-col">' +
     '<div class="flex items-center justify-between px-4 py-3 border-b">' +
     '<h3 class="font-semibold text-sm">访问日志 <span id="logModalTitle" class="text-gray-500 text-xs"></span></h3>' +
-    '<button id="closeLogModal" class="text-gray-400 hover:text-gray-600"><i class="fa fa-times"></i></button>' +
+    '<button id="closeLogModal" class="text-gray-400 hover:text-gray-600">关闭</button>' +
     "</div>" +
     '<div class="flex-1 overflow-y-auto">' +
     '<table class="min-w-full text-xs">' +
@@ -959,7 +947,7 @@ function renderAdminUI(links, stats, token, env) {
     "document.addEventListener('click',async function(e){if(e.target.classList.contains('deleteBtn')){var key=e.target.getAttribute('data-key');if(!confirm('确定删除 '+key+' ?'))return;try{var res=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'delete',key:key})});if(!res.ok){var t=await res.text();showToast(t);return;}showToast('删除成功');window.location.href='/admin?token='+encodeURIComponent(token);}catch(err){showToast('删除失败');}}if(e.target.id==='batchDeleteBtn'){var selected=[];var boxes=document.querySelectorAll('.linkCheckbox:checked');for(var i=0;i<boxes.length;i++){selected.push(boxes[i].value);}if(selected.length===0){showToast('请选择要删除的短链');return;}if(!confirm('确定删除选中的 '+selected.length+' 条短链吗？'))return;try{var res2=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'batchDelete',keys:selected})});if(!res2.ok){var t2=await res2.text();showToast(t2);return;}showToast('批量删除成功');window.location.href='/admin?token='+encodeURIComponent(token);}catch(err2){showToast('批量删除失败');}}if(e.target.classList.contains('viewLogBtn')){var key2=e.target.getAttribute('data-key');document.getElementById('logModalTitle').textContent='('+key2+')';document.getElementById('logModal').classList.remove('hidden');document.getElementById('logModal').classList.add('flex');var bodyHtml='<tr><td colspan=\"3\" class=\"px-3 py-6 text-center text-gray-400\">加载中...</td></tr>';document.getElementById('logTableBody').innerHTML=bodyHtml;try{var res3=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'getLogs',key:key2})});if(!res3.ok){document.getElementById('logTableBody').innerHTML='<tr><td colspan=\"3\" class=\"px-3 py-6 text-center text-red-500\">加载失败</td></tr>';return;}var logs=await res3.json();if(!logs||logs.length===0){document.getElementById('logTableBody').innerHTML='<tr><td colspan=\"3\" class=\"px-3 py-6 text-center text-gray-400\">暂无日志</td></tr>';return;}var rows2='';for(var j=0;j<logs.length;j++){var lg=logs[j];rows2+='<tr class=\"border-t\"><td class=\"px-3 py-2\">'+new Date(lg.time).toLocaleString()+'</td><td class=\"px-3 py-2\">'+(lg.ip||'')+'</td><td class=\"px-3 py-2 text-xs\">'+(lg.userAgent||'')+'</td></tr>';}" +
     "document.getElementById('logTableBody').innerHTML=rows2;}catch(err3){document.getElementById('logTableBody').innerHTML='<tr><td colspan=\"3\" class=\"px-3 py-6 text-center text-red-500\">加载失败</td></tr>';}}if(e.target.classList.contains('editBtn')){var key3=e.target.getAttribute('data-key');var newUrl=prompt('输入新的 URL');if(!newUrl)return;var days=prompt('过期天数(0=不变或永久)', '0');var type=prompt('跳转类型 301 或 302', '302');var pwd=prompt('访问密码(可空则清除)', '');try{var res4=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'edit',key:key3,url:newUrl,expireDays:days,redirectType:type,password:pwd})});if(!res4.ok){var t4=await res4.text();showToast(t4);return;}showToast('修改成功');window.location.href='/admin?token='+encodeURIComponent(token);}catch(err4){showToast('修改失败');}}});" +
     "document.getElementById('closeLogModal').addEventListener('click',function(){var m=document.getElementById('logModal');m.classList.add('hidden');m.classList.remove('flex');});" +
-    "document.getElementById('csvFile').addEventListener('change',function(e){var file=e.target.files[0];if(!file)return;Papa.parse(file,{header:true,skipEmptyLines:true,complete:async function(results){if(results.errors&&results.errors.length>0){showToast('CSV解析错误');return;}var rows=results.data||[];if(rows.length===0){showToast('无数据');return;}var list=[];for(var i=0;i<rows.length;i++){var row=rows[i];var sc=(row['短码']||'').trim();var u=(row['目标URL']||row['目标 Url']||row['url']||'').trim();if(!sc||!u)continue;var d=row['过期天数']?parseInt(row['过期天数'],10):0;var p=(row['访问密码']||'').trim();var rt=row['跳转类型']==='301'?301:302;list.push({shortCode:sc,url:u,expireDays:d,password:p,redirectType:rt});}if(list.length===0){showToast('无有效数据');return;}try{var res5=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'batchImport',data:JSON.stringify(list)})});if(!res5.ok){var t5=await res5.text();showToast(t5);return;}var r5=await res5.json();showToast('导入完成 成功 '+r5.success+' 条 失败 '+r5.fail+' 条');window.location.href='/admin?token='+encodeURIComponent(token);}catch(err5){showToast('导入失败');}}});});" +
+    "" +
     "</script>" +
     "</body>" +
     "</html>";
@@ -979,6 +967,7 @@ function renderHome(env) {
     '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
     "<title>短链接生成器</title>" +
     '<script src="https://cdn.tailwindcss.com"></script>' +
+    "<style>input[type=text],input[type=password],input[type=url],input[type=number],select{padding:.5rem .75rem;border:1px solid #e5e7eb;border-radius:.5rem;font-size:.875rem;outline:none}input:focus,select:focus{box-shadow:0 0 0 2px #93c5fd;border-color:#3b82f6}button{padding:.5rem .75rem;border-radius:.5rem;font-size:.875rem;border:1px solid transparent}button.primary{background:#3b82f6;color:#fff}button.primary:hover{background:#2563eb}button.danger{border-color:#ef4444;color:#ef4444;background:transparent}button.danger:hover{background:#fee2e2}button.outline{border-color:#e5e7eb;background:#fff;color:#111827}button.outline:hover{background:#f9fafb}</style>" +
     "</head>" +
     '<body class="min-h-screen bg-gray-50 flex items-center justify-center p-4 text-gray-900">' +
     '<div class="w-full max-w-xl space-y-6">' +
@@ -1001,7 +990,7 @@ function renderHome(env) {
     '<label class="block text-sm text-gray-700">自定义短码</label>' +
     '<div class="flex gap-2">' +
     '<input id="shortCode" type="text" class="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" placeholder="如: my-link">' +
-    '<button id="randomHomeCodeBtn" class="px-2 py-2 text-xs border rounded-lg">随机</button>' +
+    '<button id="randomHomeCodeBtn" class="outline">随机</button>' +
     "</div>" +
     "</div>" +
     (expireEnabled
@@ -1012,10 +1001,10 @@ function renderHome(env) {
         '" class="w-full px-3 py-2 border rounded-lg text-sm">' +
         "</div>"
       : "") +
-    '<button id="createBtn" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2.5 rounded-lg text-sm font-medium">生成短链接</button>' +
+    '<button id="createBtn" class="w-full primary">生成短链接</button>' +
     '<div id="result" class="hidden border border-gray-100 rounded-lg bg-gray-50 px-3 py-2 text-sm flex items-center justify-between gap-2">' +
     '<span id="shortUrl" class="truncate"></span>' +
-    '<button id="copyBtn" class="px-2 py-1 text-xs border rounded-lg hover:bg-gray-100">复制</button>' +
+    '<button id="copyBtn" class="outline">复制</button>' +
     "</div>" +
     "</main>" +
     '<footer class="text-center text-[10px] text-gray-400">部署于 Cloudflare Workers</footer>' +
