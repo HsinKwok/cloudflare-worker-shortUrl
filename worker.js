@@ -298,6 +298,10 @@ async function addLink(env, data) {
   if (await env.URL_KV.get(shortCode)) {
     return new Response("短码已存在", { status: 409 });
   }
+  const existedByUrl = await findShortCodeByUrl(env, url);
+  if (existedByUrl) {
+    return new Response("目标 URL 已存在，对应短码为 " + existedByUrl.shortCode, { status: 409 });
+  }
   if (String(data.source || "").toLowerCase() === "home" && !isFrontendExpireSelectEnabled(env)) {
     expireDays = getDefaultExpireDays(env);
   }
@@ -462,6 +466,27 @@ async function getAllLinks(env) {
   return result;
 }
 
+async function findShortCodeByUrl(env, targetUrl) {
+  let cursor = undefined;
+  while (true) {
+    const list = await env.URL_KV.list({ prefix: "", limit: 1000, cursor: cursor });
+    for (const k of list.keys) {
+      const name = k.name;
+      if (name.indexOf("log_") === 0) continue;
+      if (name.indexOf("stats_") === 0) continue;
+      const raw = await env.URL_KV.get(name);
+      if (!raw) continue;
+      const data = JSON.parse(raw);
+      if (data && data.url === targetUrl) {
+        return { shortCode: name, expireAt: data.expireAt || null };
+      }
+    }
+    if (list.list_complete) break;
+    cursor = list.cursor;
+  }
+  return null;
+}
+
 async function getTotalStats(env) {
   const links = await getAllLinks(env);
   let totalViews = 0;
@@ -601,6 +626,17 @@ async function handleCreateApi(request, env) {
   if (!isValidUrl(targetUrl)) {
     return new Response("URL格式无效", { status: 400 });
   }
+  const existedByUrl = await findShortCodeByUrl(env, targetUrl);
+  if (existedByUrl) {
+    const origin = u.origin;
+    return jsonResponse({
+      shortCode: existedByUrl.shortCode,
+      shortUrl: origin + "/" + existedByUrl.shortCode,
+      expireAt: existedByUrl.expireAt || null,
+      existed: true,
+      message: "目标 URL 已存在"
+    });
+  }
   const maxLen = getMaxShortCodeLength(env);
   const re = new RegExp("^[A-Za-z0-9]{2," + maxLen + "}$");
   if (!shortCode) {
@@ -659,6 +695,17 @@ async function handleCreateHome(request, env) {
   }
   if (!isValidUrl(targetUrl)) {
     return new Response("URL格式无效", { status: 400 });
+  }
+  const existedByUrl = await findShortCodeByUrl(env, targetUrl);
+  if (existedByUrl) {
+    const origin = u.origin;
+    return jsonResponse({
+      shortCode: existedByUrl.shortCode,
+      shortUrl: origin + "/" + existedByUrl.shortCode,
+      expireAt: existedByUrl.expireAt || null,
+      existed: true,
+      message: "目标 URL 已存在"
+    });
   }
   const maxLen = getMaxShortCodeLength(env);
   const re = new RegExp("^[A-Za-z0-9]{2," + maxLen + "}$");
@@ -873,7 +920,14 @@ function renderAdminUI(links, stats, token, env) {
     '<div class="flex-1 max-w-sm">' +
     '<input id="searchInput" class="w-full px-3 py-2 border rounded-lg text-sm" placeholder="搜索短码或 URL">' +
     "</div>" +
-    '<button id="batchDeleteBtn" class="danger">批量删</button>' +
+    '<div class="flex items-center gap-2">' +
+    '<span class="text-sm text-gray-600">每页</span>' +
+    '<select id="pageSizeSelect" class="px-2 py-1 border rounded-lg text-sm"><option value="50">50</option><option value="100">100</option></select>' +
+    '<button id="prevPageBtn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium">上一页</button>' +
+    '<span id="pageInfo" class="text-xs text-gray-500"></span>' +
+    '<button id="nextPageBtn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium">下一页</button>' +
+    '<button id="batchDeleteBtn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium">批量删</button>' +
+    "</div>" +
     "</div>" +
     '<div class="overflow-x-auto">' +
     '<table class="min-w-full text-sm">' +
@@ -928,8 +982,11 @@ function renderAdminUI(links, stats, token, env) {
     "function renderStats(){document.getElementById('statTotalLinks').textContent=initial.stats.totalLinks;document.getElementById('statTotalViews').textContent=initial.stats.totalViews;document.getElementById('statActiveLinks').textContent=initial.stats.activeLinks;}" +
     "function renderTable(list){var tbody=document.getElementById('linkTableBody');if(!list||list.length===0){tbody.innerHTML='<tr><td colspan=\"6\" class=\"px-3 py-8 text-center text-gray-400\">暂无数据</td></tr>';return;}var rows='';for(var i=0;i<list.length;i++){var item=list[i];var expire=item.expireAt?new Date(item.expireAt).toLocaleDateString():'永久';rows+='<tr class=\"border-t\">';rows+='<td class=\"px-3 py-2\"><input type=\"checkbox\" class=\"linkCheckbox\" value=\"'+item.shortCode+'\"></td>';rows+='<td class=\"px-3 py-2\"><code class=\"px-1 py-0.5 bg-gray-100 rounded text-xs\">'+item.shortCode+'</code></td>';rows+='<td class=\"px-3 py-2 max-w-xs truncate\"><a href=\"/'+item.shortCode+'\" target=\"_blank\" class=\"text-blue-600 hover:underline\">'+item.url+'</a></td>';rows+='<td class=\"px-3 py-2\">'+item.stats+'</td>';rows+='<td class=\"px-3 py-2\">'+expire+'</td>';rows+='<td class=\"px-3 py-2 space-x-2\"><button class=\"viewLogBtn text-blue-500 text-xs\" data-key=\"'+item.shortCode+'\">日志</button><button class=\"editBtn text-yellow-500 text-xs\" data-key=\"'+item.shortCode+'\">编辑</button><button class=\"deleteBtn text-red-500 text-xs\" data-key=\"'+item.shortCode+'\">删除</button></td>';rows+='</tr>';}" +
     "tbody.innerHTML=rows;}" +
+    "var fullList=initial.links;var filteredList=fullList.slice();var pageSize=50;var currentPage=1;" +
+    "function renderTablePage(){var total=Math.max(0,filteredList.length);var totalPages=Math.max(1,Math.ceil(total/pageSize));if(currentPage<1)currentPage=1;if(currentPage>totalPages)currentPage=totalPages;var start=(currentPage-1)*pageSize;var end=start+pageSize;var segment=filteredList.slice(start,end);renderTable(segment);var info=document.getElementById('pageInfo');if(info)info.textContent='第 '+currentPage+' / '+totalPages+' 页';var sel=document.getElementById('selectAll');if(sel)sel.checked=false;}" +
+    "function applyFilter(keyword){keyword=String(keyword||'').toLowerCase();filteredList=[];for(var i=0;i<fullList.length;i++){var item=fullList[i];var c=String(item.shortCode||'').toLowerCase();var u=String(item.url||'').toLowerCase();if(c.indexOf(keyword)>=0||u.indexOf(keyword)>=0){filteredList.push(item);}}currentPage=1;renderTablePage();}" +
     "function showToast(msg){alert(msg);}" +
-    "renderStats();renderTable(initial.links);" +
+    "renderStats();renderTablePage();" +
     "async function refreshApiKeys(){try{var r=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'listApiKeys'})});if(!r.ok){return;}var keys=await r.json();var rows='';for(var i=0;i<keys.length;i++){var k=keys[i];rows+='<tr class=\"border-t\">';rows+='<td class=\"px-3 py-2\">'+k+'</td>';rows+='<td class=\"px-3 py-2\"><button class=\"delApiKeyBtn text-red-500 text-xs\" data-key=\"'+k+'\">删除</button></td>';rows+='</tr>'; }var bodyEl=document.getElementById('apiKeyTableBody');if(bodyEl)bodyEl.innerHTML=rows;}catch(e){}}" +
     "refreshApiKeys();" +
     "var addApiKeyBtn=document.getElementById('addApiKeyBtn');if(addApiKeyBtn){addApiKeyBtn.addEventListener('click',async function(){var key=document.getElementById('newApiKey').value.trim();if(!key){showToast('请输入 API Key');return;}if(!/^[A-Za-z0-9]{2,32}$/.test(key)){showToast('API Key 仅允许字母数字，长度 2-32');return;}try{var r=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'addApiKey',key:key})});if(!r.ok){var t=await r.text();showToast(t);return;}document.getElementById('newApiKey').value='';refreshApiKeys();showToast('添加成功');}catch(e){showToast('添加失败');}});}" +
@@ -942,7 +999,10 @@ function renderAdminUI(links, stats, token, env) {
     "document.getElementById('newShortCode').addEventListener('blur',checkCodeInput);" +
     "document.getElementById('logoutBtn').addEventListener('click',function(){localStorage.removeItem('adminToken');window.location.href='/admin';});" +
     "document.getElementById('addLinkBtn').addEventListener('click',async function(){var shortCode=document.getElementById('newShortCode').value.trim();var url=document.getElementById('newTargetUrl').value.trim();var expireDays=document.getElementById('expireDays').value;var redirectType=document.getElementById('redirectType').value;var password=document.getElementById('linkPassword').value.trim();if(!url){showToast('请输入目标 URL');return;}if(!shortCode){shortCode=await generateUniqueCode(8);document.getElementById('newShortCode').value=shortCode;}if(shortCode.length>MAX_LEN){showToast('短码长度不能超过 '+MAX_LEN);return;}if(codeExists){showToast('短码已存在，请更换或随机生成');return;}try{var res=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'add',shortCode:shortCode,url:url,expireDays:expireDays,redirectType:redirectType,password:password,source:'admin'})});if(!res.ok){var t=await res.text();showToast(t);return;}showToast('添加成功');window.location.href='/admin?token='+encodeURIComponent(token);}catch(e){showToast('添加失败');}});" +
-    "document.getElementById('searchInput').addEventListener('input',function(e){var keyword=e.target.value.toLowerCase();var rows=document.querySelectorAll('#linkTableBody tr');for(var i=0;i<rows.length;i++){var row=rows[i];var codeCell=row.querySelector('code');var urlCell=row.querySelector('td:nth-child(3)');if(!codeCell||!urlCell)continue;var c=codeCell.textContent.toLowerCase();var u=urlCell.textContent.toLowerCase();var visible=c.indexOf(keyword)>=0||u.indexOf(keyword)>=0;row.style.display=visible?'':'none';}});" +
+    "document.getElementById('searchInput').addEventListener('input',function(e){applyFilter(e.target.value);});" +
+    "var pageSizeSelect=document.getElementById('pageSizeSelect');if(pageSizeSelect){pageSizeSelect.addEventListener('change',function(){var v=parseInt(pageSizeSelect.value,10);if(v!==50&&v!==100)v=50;pageSize=v;currentPage=1;renderTablePage();});}" +
+    "var prevPageBtn=document.getElementById('prevPageBtn');if(prevPageBtn){prevPageBtn.addEventListener('click',function(){currentPage=Math.max(1,currentPage-1);renderTablePage();});}" +
+    "var nextPageBtn=document.getElementById('nextPageBtn');if(nextPageBtn){nextPageBtn.addEventListener('click',function(){currentPage=currentPage+1;renderTablePage();});}" +
     "document.getElementById('selectAll').addEventListener('change',function(e){var checked=e.target.checked;var boxes=document.querySelectorAll('.linkCheckbox');for(var i=0;i<boxes.length;i++){boxes[i].checked=checked;}});" +
     "document.addEventListener('click',async function(e){if(e.target.classList.contains('deleteBtn')){var key=e.target.getAttribute('data-key');if(!confirm('确定删除 '+key+' ?'))return;try{var res=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'delete',key:key})});if(!res.ok){var t=await res.text();showToast(t);return;}showToast('删除成功');window.location.href='/admin?token='+encodeURIComponent(token);}catch(err){showToast('删除失败');}}if(e.target.id==='batchDeleteBtn'){var selected=[];var boxes=document.querySelectorAll('.linkCheckbox:checked');for(var i=0;i<boxes.length;i++){selected.push(boxes[i].value);}if(selected.length===0){showToast('请选择要删除的短链');return;}if(!confirm('确定删除选中的 '+selected.length+' 条短链吗？'))return;try{var res2=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'batchDelete',keys:selected})});if(!res2.ok){var t2=await res2.text();showToast(t2);return;}showToast('批量删除成功');window.location.href='/admin?token='+encodeURIComponent(token);}catch(err2){showToast('批量删除失败');}}if(e.target.classList.contains('viewLogBtn')){var key2=e.target.getAttribute('data-key');document.getElementById('logModalTitle').textContent='('+key2+')';document.getElementById('logModal').classList.remove('hidden');document.getElementById('logModal').classList.add('flex');var bodyHtml='<tr><td colspan=\"3\" class=\"px-3 py-6 text-center text-gray-400\">加载中...</td></tr>';document.getElementById('logTableBody').innerHTML=bodyHtml;try{var res3=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'getLogs',key:key2})});if(!res3.ok){document.getElementById('logTableBody').innerHTML='<tr><td colspan=\"3\" class=\"px-3 py-6 text-center text-red-500\">加载失败</td></tr>';return;}var logs=await res3.json();if(!logs||logs.length===0){document.getElementById('logTableBody').innerHTML='<tr><td colspan=\"3\" class=\"px-3 py-6 text-center text-gray-400\">暂无日志</td></tr>';return;}var rows2='';for(var j=0;j<logs.length;j++){var lg=logs[j];rows2+='<tr class=\"border-t\"><td class=\"px-3 py-2\">'+new Date(lg.time).toLocaleString()+'</td><td class=\"px-3 py-2\">'+(lg.ip||'')+'</td><td class=\"px-3 py-2 text-xs\">'+(lg.userAgent||'')+'</td></tr>';}" +
     "document.getElementById('logTableBody').innerHTML=rows2;}catch(err3){document.getElementById('logTableBody').innerHTML='<tr><td colspan=\"3\" class=\"px-3 py-6 text-center text-red-500\">加载失败</td></tr>';}}if(e.target.classList.contains('editBtn')){var key3=e.target.getAttribute('data-key');var newUrl=prompt('输入新的 URL');if(!newUrl)return;var days=prompt('过期天数(0=不变或永久)', '0');var type=prompt('跳转类型 301 或 302', '302');var pwd=prompt('访问密码(可空则清除)', '');try{var res4=await fetch('/admin',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({action:'edit',key:key3,url:newUrl,expireDays:days,redirectType:type,password:pwd})});if(!res4.ok){var t4=await res4.text();showToast(t4);return;}showToast('修改成功');window.location.href='/admin?token='+encodeURIComponent(token);}catch(err4){showToast('修改失败');}}});" +
@@ -1004,7 +1064,7 @@ function renderHome(env) {
     '<button id="createBtn" class="w-full primary">生成短链接</button>' +
     '<div id="result" class="hidden border border-gray-100 rounded-lg bg-gray-50 px-3 py-2 text-sm flex items-center justify-between gap-2">' +
     '<span id="shortUrl" class="truncate"></span>' +
-    '<button id="copyBtn" class="outline">复制</button>' +
+    '<button id="copyBtn" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium">复制</button>' +
     "</div>" +
     "</main>" +
     '<footer class="text-center text-[10px] text-gray-400">部署于 Cloudflare Workers</footer>' +
@@ -1031,7 +1091,7 @@ function renderHome(env) {
     "codeInput.addEventListener('input',checkCodeInput);" +
     "codeInput.addEventListener('blur',checkCodeInput);" +
     "if(EXPIRE_ENABLED){var inp=document.getElementById('homeExpireDays');if(inp){inp.value=String(DEFAULT_EXPIRE);}}" +
-    "async function createShort(){var url=targetInput.value.trim();var code=codeInput.value.trim();if(!url){showToast('请输入目标 URL');return;}if(!code){code=await generateUniqueCode(8);codeInput.value=code;}if(code.length>MAX_LEN){showToast('短码长度不能超过 '+MAX_LEN);return;}if(codeExists){showToast('短码已存在，请更换或随机生成');return;}var expireDays=DEFAULT_EXPIRE;if(EXPIRE_ENABLED){var inp=document.getElementById('homeExpireDays');if(inp){var v=parseInt(inp.value,10);if(isNaN(v)||v<0){showToast('请输入合法的过期天数');return;}if(v>MAX_EXPIRE){showToast('过期天数不能超过 '+MAX_EXPIRE);return;}expireDays=v;}}try{var res=await fetch('/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:code,url:url,expireDays:expireDays,redirectType:302,password:''})});if(!res.ok){var t=await res.text();showToast(t);return;}var data=await res.json();shortUrlSpan.textContent=data.shortUrl||window.location.origin+'/'+code;resultBox.classList.remove('hidden');}catch(e){showToast('创建失败');}}" +
+    "async function createShort(){var url=targetInput.value.trim();var code=codeInput.value.trim();if(!url){showToast('请输入目标 URL');return;}if(!code){code=await generateUniqueCode(8);codeInput.value=code;}if(code.length>MAX_LEN){showToast('短码长度不能超过 '+MAX_LEN);return;}if(codeExists){showToast('短码已存在，请更换或随机生成');return;}var expireDays=DEFAULT_EXPIRE;if(EXPIRE_ENABLED){var inp=document.getElementById('homeExpireDays');if(inp){var v=parseInt(inp.value,10);if(isNaN(v)||v<0){showToast('请输入合法的过期天数');return;}if(v>MAX_EXPIRE){showToast('过期天数不能超过 '+MAX_EXPIRE);return;}expireDays=v;}}try{var res=await fetch('/create',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code:code,url:url,expireDays:expireDays,redirectType:302,password:''})});if(!res.ok){var t=await res.text();showToast(t);return;}var data=await res.json();if(data&&data.existed){showToast('该目标 URL 已存在');}shortUrlSpan.textContent=(data.shortUrl||window.location.origin+'/'+(data.shortCode||code));resultBox.classList.remove('hidden');}catch(e){showToast('创建失败');}}" +
     "createBtn.addEventListener('click',function(){createShort();});" +
     "targetInput.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();createShort();}});" +
     "codeInput.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();createShort();}});" +
